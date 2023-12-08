@@ -1,17 +1,21 @@
-import { Entity, Property } from '@mikro-orm/core';
-import { BaseEntity } from '../../../base/base.entity';
+import {Entity, Property} from '@mikro-orm/core';
+import {BaseEntity} from '../../../base/base.entity';
+import {RoleLevel} from "../../../common/constant/constant";
 
 @Entity()
 export class Role extends BaseEntity {
-  @Property()
-  roleName: string;
+	@Property()
+	roleName: string;
 
-  @Property()
-  description: string;
+	@Property()
+	level: RoleLevel
 
-  @Property({ hidden: true })
-  createdAt;
+	@Property()
+	description: string;
 
-  @Property({ hidden: true })
-  updatedAt;
+	@Property({hidden: true})
+	createdAt;
+
+	@Property({hidden: true})
+	updatedAt;
 }

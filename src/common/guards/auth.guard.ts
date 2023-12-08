@@ -1,37 +1,43 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { AuthGuard as _AuthGuard, IAuthGuard } from '@nestjs/passport';
-import { SELECT_AUTH_KEY } from '../decorators/auth.decorator';
-import { AuthStrategies } from '../constant/constant';
+import {CanActivate, ExecutionContext, Injectable} from '@nestjs/common';
+import {Reflector} from '@nestjs/core';
+import {AuthGuard as _AuthGuard, IAuthGuard} from '@nestjs/passport';
+import {AuthStrategies, AuthStrategyKey} from '../constant/constant';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+	constructor(private reflector: Reflector) {
+	}
 
-  private static getAuthGuard(auth?: string): IAuthGuard {
-    // let guard: IAuthGuard;
-    // switch (auth) {
-    //   case AuthStrategies.LOCAL:
-    //     guard = new (_AuthGuard('local'))();
-    //     break;
-    //   case AuthStrategies.JWT:
-    //     guard = new (_AuthGuard('jwt'))();
-    //     break;
-    // }
-    return new (_AuthGuard('jwt'))();
-  }
+	private static getAuthGuard(auth?: string): IAuthGuard {
+		let guard: IAuthGuard;
+		switch (auth) {
+			case AuthStrategies.LOCAL:
+				guard = new (_AuthGuard('local'))();
+				break;
+			case AuthStrategies.JWT:
+				guard = new (_AuthGuard('jwt'))();
+				break;
+		}
+		return guard;
+	}
 
-  canActivate(context: ExecutionContext) {
-    const auth = this.reflector.getAllAndOverride<string>(SELECT_AUTH_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+	canActivate(context: ExecutionContext) {
+		const authType = this.reflector.getAllAndOverride<string>(AuthStrategyKey.BASE_KEY, [
+			context.getHandler(),
+			context.getClass(),
+		]) || 'jwt';
 
-    if (!auth || auth === AuthStrategies.NO) {
-      return true;
-    }
+		const isPublic = this.reflector.getAllAndOverride<string>(AuthStrategyKey.PUBLIC_KEY, [
+			context.getHandler(),
+			context.getClass(),
+		]);
 
-    const guard = AuthGuard.getAuthGuard(auth);
-    return guard.canActivate(context);
-  }
+		if (isPublic) {
+			return true;
+		}
+		console.log(authType)
+
+		const guard = AuthGuard.getAuthGuard(authType);
+		return guard.canActivate(context);
+	}
 }
